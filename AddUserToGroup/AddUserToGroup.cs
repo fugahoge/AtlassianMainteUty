@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -12,9 +11,6 @@ internal static class AddUserToGroup
 {
   private static Config? _config;
   private static ILogger? _logger;
-
-  private static readonly Hashtable _accountIdCache = new(StringComparer.OrdinalIgnoreCase);
-  private static readonly Hashtable _groupIdCache = new(StringComparer.OrdinalIgnoreCase);
 
   public static async Task<int> Main(string[] args)
   {
@@ -108,12 +104,12 @@ internal static class AddUserToGroup
     // JSON の format と version をチェック
     if (request.Format != "user-group-request")
     {
-      _logger?.LogError("format が不正です。");
+      _logger?.LogError("json の format が不正です。");
       throw new InvalidOperationException("format is invalid");
     }
     if (request.Version != "1.0")
     {
-      _logger?.LogError("version が不正です。");
+      _logger?.LogError("json の version が不正です。");
       throw new InvalidOperationException("version is invalid");
     }
 
@@ -131,12 +127,12 @@ internal static class AddUserToGroup
     using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
 
     // accountId を取得
-    var accountId = await GetAccountIdByEmailAsync(httpClient, email);
+    var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
     if (string.IsNullOrEmpty(accountId))
       return 1;
 
     // groupId を取得
-    var groupId = await GetGroupIdByNameAsync(httpClient, groupName);
+    var groupId = await CommonJIRA.GetGroupIdByNameAsync(httpClient, config, groupName);
     if (string.IsNullOrEmpty(groupId))
       return 1;
 
@@ -148,9 +144,9 @@ internal static class AddUserToGroup
       // 処理に失敗した場合
       if (!response.IsSuccessStatusCode)
       {
-        if (IsAlreadyMemberError(response.StatusCode, rawResponse))
+        if (CommonJIRA.IsAlreadyMemberError(response.StatusCode, rawResponse))
         {
-          logger.LogInformation("ユーザーは指定されたグループに既に所属しています。");
+          logger.LogInformation("指定されたグループに既に所属しています。");
           return 0;
         }
 
@@ -162,76 +158,5 @@ internal static class AddUserToGroup
     }
 
     return 0;
-  }
-
-  /// <summary>
-  /// メールアドレスから accountId を取得する
-  /// </summary>
-  private static async Task<string?> GetAccountIdByEmailAsync(HttpClient httpClient, string email)
-  {
-    var config = _config!.Atlassian;
-
-    if (_accountIdCache[email] is string cached)
-    {
-      _logger?.LogInformation("accountId (キャッシュ): {AccountId}", cached);
-      return cached;
-    }
-
-    var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
-    if (string.IsNullOrEmpty(accountId))
-    {
-      _logger?.LogError("ユーザーが見つかりません (メール: {Email})", email);
-      return null;
-    }
-
-    _accountIdCache[email] = accountId;
-    _logger?.LogInformation("accountId: {AccountId}", accountId);
-
-    return accountId;
-  }
-
-  /// <summary>
-  /// グループ名から groupId を取得する
-  /// </summary>
-  private static async Task<string?> GetGroupIdByNameAsync(HttpClient httpClient, string groupName)
-  {
-    var config = _config!.Atlassian;
-
-    if (_groupIdCache[groupName] is string cached)
-    {
-      _logger?.LogInformation("groupId (キャッシュ): {GroupId}", cached);
-      return cached;
-    }
-
-    var groupId = await CommonJIRA.GetGroupIdByNameAsync(httpClient, config, groupName);
-    if (string.IsNullOrEmpty(groupId))
-    {
-      _logger?.LogError("グループが見つかりません (名前: {GroupName})", groupName);
-      return null;
-    }
-
-    _groupIdCache[groupName] = groupId;
-    _logger?.LogInformation("groupId: {GroupId}", groupId);
-
-    return groupId;
-  }
-
-  /// <summary>
-  /// 「既にグループに所属している」を判定する
-  /// </summary>
-  private static bool IsAlreadyMemberError(System.Net.HttpStatusCode statusCode, string? rawResponse)
-  {
-    // Atlassian Cloud Admin API の仕様では、「既に所属済み」と「その他の登録失敗」を区別できない
-    // 「既に所属済み」の場合も、その他のバリデーションエラーと同様に 400 Bad Request が返る
-    // メッセージに "Cannot add user. User is already a member of" のような文言が含まれることで判定する
-    if (statusCode != System.Net.HttpStatusCode.BadRequest)
-      return false;
-
-    if (string.IsNullOrEmpty(rawResponse))
-      return false;
-
-    var lower = rawResponse.ToLowerInvariant();
-
-    return lower.Contains("already a member");
   }
 }

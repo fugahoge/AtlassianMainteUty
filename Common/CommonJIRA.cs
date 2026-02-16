@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -11,8 +13,28 @@ public static class CommonJIRA
 {
   private const int DefaultMaxRetries = 3;
 
+  private static readonly Hashtable AccountIdCache = new(StringComparer.OrdinalIgnoreCase);
+  private static readonly Hashtable GroupIdCache = new(StringComparer.OrdinalIgnoreCase);
+
   /// <summary>メールアドレスでユーザーを検索し accountId を取得</summary>
   public static async Task<string?> GetAccountIdByEmailAsync(HttpClient client, AtlassianConfig config, string email, CancellationToken cancellationToken = default)
+  {
+    if (AccountIdCache[email] is string cached)
+    {
+      return cached;
+    }
+
+    var accountId = await FetchAccountIdByEmailAsync(client, config, email, cancellationToken);
+    if (string.IsNullOrEmpty(accountId))
+    {
+      return null;
+    }
+
+    AccountIdCache[email] = accountId;
+    return accountId;
+  }
+
+  private static async Task<string?> FetchAccountIdByEmailAsync(HttpClient client, AtlassianConfig config, string email, CancellationToken cancellationToken)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
       client,
@@ -44,6 +66,23 @@ public static class CommonJIRA
 
   /// <summary>グループ名で groupuserpicker を検索し groupId を取得</summary>
   public static async Task<string?> GetGroupIdByNameAsync(HttpClient client, AtlassianConfig config, string groupName, CancellationToken cancellationToken = default)
+  {
+    if (GroupIdCache[groupName] is string cached)
+    {
+      return cached;
+    }
+
+    var groupId = await FetchGroupIdByNameAsync(client, config, groupName, cancellationToken);
+    if (string.IsNullOrEmpty(groupId))
+    {
+      return null;
+    }
+
+    GroupIdCache[groupName] = groupId;
+    return groupId;
+  }
+
+  private static async Task<string?> FetchGroupIdByNameAsync(HttpClient client, AtlassianConfig config, string groupName, CancellationToken cancellationToken)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
       client,
@@ -131,6 +170,17 @@ public static class CommonJIRA
         return Array.Empty<string>();
       }
     }
+  }
+
+  /// <summary>「既にグループに所属している」を判定する</summary>
+  public static bool IsAlreadyMemberError(HttpStatusCode statusCode, string? rawResponse)
+  {
+    if (statusCode != HttpStatusCode.BadRequest)
+      return false;
+    if (string.IsNullOrEmpty(rawResponse))
+      return false;
+    var lower = rawResponse.ToLowerInvariant();
+    return lower.Contains("already a member");
   }
 
   /// <summary>Basic 認証用の Authorization ヘッダ値を生成する</summary>
