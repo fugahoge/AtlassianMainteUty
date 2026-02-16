@@ -44,80 +44,7 @@ internal static class AddUserToGroup
       logger.LogInformation("対象ユーザー: {Email}", email);
       logger.LogInformation("対象グループ: {GroupName}", groupName);
 
-      using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-
-      var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config.Atlassian, email);
-      if (string.IsNullOrEmpty(accountId))
-      {
-        logger.LogError("ユーザーが見つかりません (メール: {Email})", email);
-        return 1;
-      }
-      logger.LogInformation("取得した accountId: {AccountId}", accountId);
-
-      var groupId = await CommonJIRA.GetGroupIdByNameAsync(httpClient, config.Atlassian, groupName);
-      if (string.IsNullOrEmpty(groupId))
-      {
-        logger.LogError("グループが見つかりません (名前: {GroupName})", groupName);
-        return 1;
-      }
-      logger.LogInformation("取得した groupId: {GroupId}", groupId);
-
-      logger.LogInformation("グループ追加リクエスト送信（失敗時は最大3回までリトライ）...");
-      (var response, var rawResponse) = await CommonAdmin.AddUserToGroupAsync(httpClient, config.Atlassian, accountId, groupId);
-
-      using (response)
-      {
-        if (!response.IsSuccessStatusCode)
-        {
-          logger.LogError("グループ追加に失敗しました (HTTP {StatusCode})", (int)response.StatusCode);
-          if (!string.IsNullOrEmpty(rawResponse))
-            logger.LogError("API レスポンス: {Response}", rawResponse);
-          return 1;
-        }
-      }
-
-      if (!string.IsNullOrEmpty(rawResponse))
-      {
-        try
-        {
-          using var doc = JsonDocument.Parse(rawResponse);
-          var root = doc.RootElement;
-
-          logger.LogInformation("--- 実行結果 ---");
-
-          if (root.TryGetProperty("account_id", out var accountIdProp))
-            logger.LogInformation("  accountId: {AccountId}", accountIdProp.GetString());
-          if (root.TryGetProperty("groupId", out var gid))
-            logger.LogInformation("  groupId: {GroupId}", gid.GetString());
-          if (root.TryGetProperty("id", out var id))
-            logger.LogInformation("  membership id: {Id}", id.GetString());
-
-          if (root.TryGetProperty("message", out var msg))
-            logger.LogInformation("  メッセージ: {Message}", msg.GetString());
-          if (root.TryGetProperty("error", out var err))
-            logger.LogInformation("  エラー: {Error}", err.GetString());
-          if (root.TryGetProperty("errors", out var errs) && errs.ValueKind == JsonValueKind.Array)
-          {
-            foreach (var e in errs.EnumerateArray())
-            {
-              if (e.TryGetProperty("message", out var m))
-                logger.LogInformation("  エラー詳細: {Detail}", m.GetString());
-            }
-          }
-
-          logger.LogInformation("  ユーザー: {Email}", email);
-          logger.LogInformation("  グループ: {GroupName}", groupName);
-          logger.LogInformation("----------------");
-        }
-        catch (JsonException)
-        {
-          logger.LogInformation("レスポンス (生): {Response}", rawResponse);
-        }
-      }
-      else
-        logger.LogInformation("処理が正常に完了しました。");
-
-      return 0;
+      return await execAddUserToGroup(config.Atlassian, logger, email, groupName);
     }
     catch (Exception ex)
     {
@@ -128,5 +55,88 @@ internal static class AddUserToGroup
     {
       Serilog.Log.CloseAndFlush();
     }
+  }
+
+  /// <summary>
+  /// グループにユーザーを追加する。戻り値は 0（成功）または 1（失敗）。Exception がスローされる場合あり。
+  /// </summary>
+  private static async Task<int> execAddUserToGroup(AtlassianConfig config, ILogger logger, string email, string groupName)
+  {
+    using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
+
+    var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
+    if (string.IsNullOrEmpty(accountId))
+    {
+      logger.LogError("ユーザーが見つかりません (メール: {Email})", email);
+      return 1;
+    }
+    logger.LogInformation("取得した accountId: {AccountId}", accountId);
+
+    var groupId = await CommonJIRA.GetGroupIdByNameAsync(httpClient, config, groupName);
+    if (string.IsNullOrEmpty(groupId))
+    {
+      logger.LogError("グループが見つかりません (名前: {GroupName})", groupName);
+      return 1;
+    }
+    logger.LogInformation("取得した groupId: {GroupId}", groupId);
+
+    logger.LogInformation("グループ追加リクエスト送信（失敗時は最大3回までリトライ）...");
+    (var response, var rawResponse) = await CommonAdmin.AddUserToGroupAsync(httpClient, config, accountId, groupId);
+
+    using (response)
+    {
+      if (!response.IsSuccessStatusCode)
+      {
+        logger.LogError("グループ追加に失敗しました (HTTP {StatusCode})", (int)response.StatusCode);
+        if (!string.IsNullOrEmpty(rawResponse))
+          logger.LogError("API レスポンス: {Response}", rawResponse);
+        return 1;
+      }
+    }
+
+    if (!string.IsNullOrEmpty(rawResponse))
+    {
+      try
+      {
+        using var doc = JsonDocument.Parse(rawResponse);
+        var root = doc.RootElement;
+
+        logger.LogInformation("--- 実行結果 ---");
+
+        if (root.TryGetProperty("account_id", out var accountIdProp))
+          logger.LogInformation("  accountId: {AccountId}", accountIdProp.GetString());
+        if (root.TryGetProperty("groupId", out var gid))
+          logger.LogInformation("  groupId: {GroupId}", gid.GetString());
+        if (root.TryGetProperty("id", out var id))
+          logger.LogInformation("  membership id: {Id}", id.GetString());
+
+        if (root.TryGetProperty("message", out var msg))
+          logger.LogInformation("  メッセージ: {Message}", msg.GetString());
+        if (root.TryGetProperty("error", out var err))
+          logger.LogInformation("  エラー: {Error}", err.GetString());
+        if (root.TryGetProperty("errors", out var errs) && errs.ValueKind == JsonValueKind.Array)
+        {
+          foreach (var e in errs.EnumerateArray())
+          {
+            if (e.TryGetProperty("message", out var m))
+              logger.LogInformation("  エラー詳細: {Detail}", m.GetString());
+          }
+        }
+
+        logger.LogInformation("  ユーザー: {Email}", email);
+        logger.LogInformation("  グループ: {GroupName}", groupName);
+        logger.LogInformation("----------------");
+      }
+      catch (JsonException)
+      {
+        logger.LogInformation("レスポンス (生): {Response}", rawResponse);
+      }
+    }
+    else
+    {
+      logger.LogInformation("処理が正常に完了しました。");
+    }
+
+    return 0;
   }
 }

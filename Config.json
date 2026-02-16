@@ -5,7 +5,8 @@
     "JiraAuthEmail": "admin@example.com",
     "ApiToken": "YOUR_JIRA_API_TOKEN",
     "ApiKey": "YOUR_ATLASSIAN_ADMIN_API_KEY",
-    "OrgId": "YOUR_ORGANIZATION_ID"
+    "OrgId": "YOUR_ORGANIZATION_ID",
+    "HttpTimeoutSeconds": 30
   },
   "Log": {
     "Level": "Information",

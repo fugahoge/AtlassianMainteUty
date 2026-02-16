@@ -39,6 +39,7 @@ public class AtlassianConfig
   public string ApiToken { get; set; } = string.Empty;
   public string ApiKey { get; set; } = string.Empty;
   public string OrgId { get; set; } = string.Empty;
+  public int HttpTimeoutSeconds { get; set; } = 30;
 }
 
 public class LogConfig
