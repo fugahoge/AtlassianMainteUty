@@ -118,7 +118,7 @@ public static class CommonJIRA
     }
   }
 
-  /// <summary>accountId で groups/picker を呼び出し、所属グループ名一覧を取得</summary>
+  /// <summary>ユーザーが所属グループ一覧を取得</summary>
   public static async Task<IReadOnlyList<string>> GetGroupNamesByAccountIdAsync(HttpClient client, AtlassianConfig config, string accountId, CancellationToken cancellationToken = default)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(

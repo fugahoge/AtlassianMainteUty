@@ -30,12 +30,37 @@ internal static class AddUserToGroup
         return 1;
       }
 
-      // ユーザーをグループに追加
+      // ユーザーをグループに追加・削除
       foreach (var user in request.Users)
       {
         if (string.IsNullOrEmpty(user.Mail))
         {
           continue;
+        }
+
+        // deleteAll が true の場合は、すべてのグループを削除
+        if (user.DeleteAll)
+        {
+          var result = await execRemoveUserFromAllGroups(user.Mail);
+          if (result != 0)
+            return 1;
+        }
+        else
+        {
+          // グループから削除
+          foreach (var groupName in user.DelGroup)
+          {
+            if (string.IsNullOrWhiteSpace(groupName))
+            {
+              continue;
+            }
+
+            var result = await execRemoveUserFromGroup(user.Mail, groupName.Trim());
+            if (result != 0)
+            {
+              return 1;
+            }
+          }
         }
 
         // グループを追加
@@ -47,21 +72,6 @@ internal static class AddUserToGroup
           }
 
           var result = await execAddUserToGroup(user.Mail, groupName.Trim());
-          if (result != 0)
-          {
-            return 1;
-          }
-        }
-
-        // グループから削除
-        foreach (var groupName in user.DelGroup)
-        {
-          if (string.IsNullOrWhiteSpace(groupName))
-          {
-            continue;
-          }
-
-          var result = await execRemoveUserFromGroup(user.Mail, groupName.Trim());
           if (result != 0)
           {
             return 1;
@@ -173,6 +183,37 @@ internal static class AddUserToGroup
           logger.LogError("{Response}", rawResponse);
         return 1;
       }
+    }
+
+    return 0;
+  }
+
+  /// <summary>
+  /// 所属する全グループからユーザーを削除する
+  /// </summary>
+  private static async Task<int> execRemoveUserFromAllGroups(string email)
+  {
+    var config = _config!.Atlassian;
+    var logger = _logger!;
+
+    using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
+
+    var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
+    if (string.IsNullOrEmpty(accountId))
+      return 1;
+
+    var groupNames = await CommonJIRA.GetGroupNamesByAccountIdAsync(httpClient, config, accountId);
+    if (groupNames.Count == 0)
+    {
+      logger.LogInformation("ユーザーはどのグループにも所属していません: {Email}", email);
+      return 0;
+    }
+
+    foreach (var groupName in groupNames)
+    {
+      var result = await execRemoveUserFromGroup(email, groupName);
+      if (result != 0)
+        return 1;
     }
 
     return 0;
