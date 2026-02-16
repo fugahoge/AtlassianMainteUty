@@ -1,0 +1,14 @@
+{
+  "Atlassian": {
+    "JiraBaseUrl": "https://your-domain.atlassian.net",
+    "AdminApiBaseUrl": "https://api.atlassian.com",
+    "JiraAuthEmail": "admin@example.com",
+    "ApiToken": "YOUR_JIRA_API_TOKEN",
+    "ApiKey": "YOUR_ATLASSIAN_ADMIN_API_KEY",
+    "OrgId": "YOUR_ORGANIZATION_ID"
+  },
+  "Log": {
+    "Level": "Information",
+    "RetainedFileCountLimit": 10
+  }
+}

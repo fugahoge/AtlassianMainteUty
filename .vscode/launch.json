@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "GetUserGroups Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/GetUserGroups/bin/Debug/net10.0-windows/GetUserGroups.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/GetUserGroups",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+
+    {
+      "name": "AddUserToGroup Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/AddUserToGroup/bin/Debug/net10.0-windows/AddUserToGroup.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/AddUserToGroup",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
+}

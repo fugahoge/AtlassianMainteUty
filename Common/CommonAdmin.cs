@@ -13,17 +13,17 @@ public static class CommonAdmin
 
   /// <summary>グループにユーザーを追加（失敗時は最大 DefaultMaxRetries 回までリトライ）</summary>
   public static async Task<(HttpResponseMessage Response, string? RawBody)> AddUserToGroupAsync(
-    HttpClient client, string accountId, string groupId, CancellationToken cancellationToken = default)
+    HttpClient client, AtlassianConfig config, string accountId, string groupId, CancellationToken cancellationToken = default)
   {
     (var response, var body) = await CommonHttp.ExecuteWithRetryAsync(
       client,
       () =>
       {
-        var url = $"{Common.AdminApiBaseUrl.TrimEnd('/')}/admin/v1/orgs/{Common.OrgId}/directory/groups/{groupId}/memberships";
+        var url = $"{config.AdminApiBaseUrl.TrimEnd('/')}/admin/v1/orgs/{config.OrgId}/directory/groups/{groupId}/memberships";
         var reqBody = new { account_id = accountId };
         var content = new StringContent(JsonSerializer.Serialize(reqBody), Encoding.UTF8, "application/json");
         var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Common.ApiKey);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -34,7 +34,7 @@ public static class CommonAdmin
   }
 
   /// <summary>組織の全ユーザーを取得（cursor ページング。各リクエストでリトライあり）</summary>
-  public static async Task<List<(string AccountId, string? Email, string? DisplayName)>> GetAllOrgUsersAsync(HttpClient client, CancellationToken cancellationToken = default)
+  public static async Task<List<(string AccountId, string? Email, string? DisplayName)>> GetAllOrgUsersAsync(HttpClient client, AtlassianConfig config, CancellationToken cancellationToken = default)
   {
     var results = new List<(string, string?, string?)>();
     string? cursor = null;
@@ -45,11 +45,11 @@ public static class CommonAdmin
         client,
         () =>
         {
-          var url = $"{Common.AdminApiBaseUrl.TrimEnd('/')}/admin/v1/orgs/{Common.OrgId}/users";
+          var url = $"{config.AdminApiBaseUrl.TrimEnd('/')}/admin/v1/orgs/{config.OrgId}/users";
           if (!string.IsNullOrEmpty(cursor))
             url += "?cursor=" + Uri.EscapeDataString(cursor);
           var request = new HttpRequestMessage(HttpMethod.Get, url);
-          request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Common.ApiKey);
+          request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
           request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
           return request;
         },

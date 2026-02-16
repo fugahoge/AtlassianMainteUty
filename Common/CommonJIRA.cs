@@ -12,15 +12,15 @@ public static class CommonJIRA
   private const int DefaultMaxRetries = 3;
 
   /// <summary>メールアドレスでユーザーを検索し accountId を取得</summary>
-  public static async Task<string?> GetAccountIdByEmailAsync(HttpClient client, string email, CancellationToken cancellationToken = default)
+  public static async Task<string?> GetAccountIdByEmailAsync(HttpClient client, AtlassianConfig config, string email, CancellationToken cancellationToken = default)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
       client,
       () =>
       {
-        var url = $"{Common.JiraBaseUrl.TrimEnd('/')}/rest/api/3/users/search?query={Uri.EscapeDataString(email)}";
+        var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/users/search?query={Uri.EscapeDataString(email)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(Common.JiraAuthEmail, Common.ApiToken);
+        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -43,15 +43,15 @@ public static class CommonJIRA
   }
 
   /// <summary>グループ名で groupuserpicker を検索し groupId を取得</summary>
-  public static async Task<string?> GetGroupIdByNameAsync(HttpClient client, string groupName, CancellationToken cancellationToken = default)
+  public static async Task<string?> GetGroupIdByNameAsync(HttpClient client, AtlassianConfig config, string groupName, CancellationToken cancellationToken = default)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
       client,
       () =>
       {
-        var url = $"{Common.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groupuserpicker?query={Uri.EscapeDataString(groupName)}";
+        var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groupuserpicker?query={Uri.EscapeDataString(groupName)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(Common.JiraAuthEmail, Common.ApiToken);
+        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -80,15 +80,15 @@ public static class CommonJIRA
   }
 
   /// <summary>accountId で groups/picker を呼び出し、所属グループ名一覧を取得</summary>
-  public static async Task<IReadOnlyList<string>> GetGroupNamesByAccountIdAsync(HttpClient client, string accountId, CancellationToken cancellationToken = default)
+  public static async Task<IReadOnlyList<string>> GetGroupNamesByAccountIdAsync(HttpClient client, AtlassianConfig config, string accountId, CancellationToken cancellationToken = default)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
       client,
       () =>
       {
-        var url = $"{Common.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groups/picker?accountId={Uri.EscapeDataString(accountId)}";
+        var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groups/picker?accountId={Uri.EscapeDataString(accountId)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(Common.JiraAuthEmail, Common.ApiToken);
+        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
