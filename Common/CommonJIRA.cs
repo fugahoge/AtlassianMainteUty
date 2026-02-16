@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// Jira REST API の共通呼び出し（HTTP 送信・リトライは CommonHttp に委譲）
+/// Jira REST API の共通呼び出し
 /// </summary>
 public static class CommonJIRA
 {

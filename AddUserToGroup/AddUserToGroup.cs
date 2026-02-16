@@ -23,12 +23,14 @@ internal static class AddUserToGroup
       if (!string.IsNullOrEmpty(buildDate))
         _logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
 
+      // JSON ファイルを読み込む
       var request = await ReadJsonFile("input.json");
       if (request == null)
       {
         return 1;
       }
 
+      // ユーザーをグループに追加
       foreach (var user in request.Users)
       {
         if (string.IsNullOrEmpty(user.Mail))
@@ -36,6 +38,7 @@ internal static class AddUserToGroup
           continue;
         }
 
+        // グループを追加
         foreach (var groupName in user.AddGroup)
         {
           if (string.IsNullOrWhiteSpace(groupName))
@@ -44,6 +47,21 @@ internal static class AddUserToGroup
           }
 
           var result = await execAddUserToGroup(user.Mail, groupName.Trim());
+          if (result != 0)
+          {
+            return 1;
+          }
+        }
+
+        // グループから削除
+        foreach (var groupName in user.DelGroup)
+        {
+          if (string.IsNullOrWhiteSpace(groupName))
+          {
+            continue;
+          }
+
+          var result = await execRemoveUserFromGroup(user.Mail, groupName.Trim());
           if (result != 0)
           {
             return 1;
@@ -151,6 +169,41 @@ internal static class AddUserToGroup
         }
 
         logger.LogError("グループ追加に失敗しました (HTTP {StatusCode})", (int)response.StatusCode);
+        if (!string.IsNullOrEmpty(rawResponse))
+          logger.LogError("{Response}", rawResponse);
+        return 1;
+      }
+    }
+
+    return 0;
+  }
+
+  /// <summary>
+  /// グループからユーザーを削除する
+  /// </summary>
+  private static async Task<int> execRemoveUserFromGroup(string email, string groupName)
+  {
+    var config = _config!.Atlassian;
+    var logger = _logger!;
+
+    using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
+
+    var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
+    if (string.IsNullOrEmpty(accountId))
+      return 1;
+
+    var groupId = await CommonJIRA.GetGroupIdByNameAsync(httpClient, config, groupName);
+    if (string.IsNullOrEmpty(groupId))
+      return 1;
+
+    logger.LogInformation("グループ削除：{Email} <- {GroupName}", email, groupName);
+    (var response, var rawResponse) = await CommonAdmin.RemoveUserFromGroupAsync(httpClient, config, accountId, groupId);
+
+    using (response)
+    {
+      if (!response.IsSuccessStatusCode)
+      {
+        logger.LogError("グループ削除に失敗しました (HTTP {StatusCode})", (int)response.StatusCode);
         if (!string.IsNullOrEmpty(rawResponse))
           logger.LogError("{Response}", rawResponse);
         return 1;

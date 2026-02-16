@@ -5,13 +5,13 @@ using System.Text.Json;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// Atlassian Admin REST API の共通呼び出し（HTTP 送信・リトライは CommonHttp に委譲）
+/// Atlassian Admin REST API の共通呼び出し
 /// </summary>
 public static class CommonAdmin
 {
   private const int DefaultMaxRetries = 3;
 
-  /// <summary>グループにユーザーを追加（失敗時は最大 DefaultMaxRetries 回までリトライ）</summary>
+  /// <summary>グループにユーザーを追加</summary>
   public static async Task<(HttpResponseMessage Response, string? RawBody)> AddUserToGroupAsync(
     HttpClient client, AtlassianConfig config, string accountId, string groupId, CancellationToken cancellationToken = default)
   {
@@ -33,7 +33,27 @@ public static class CommonAdmin
     return (response, body);
   }
 
-  /// <summary>組織の全ユーザーを取得（cursor ページング。各リクエストでリトライあり）</summary>
+  /// <summary>グループからユーザーを削除</summary>
+  public static async Task<(HttpResponseMessage Response, string? RawBody)> RemoveUserFromGroupAsync(
+    HttpClient client, AtlassianConfig config, string accountId, string groupId, CancellationToken cancellationToken = default)
+  {
+    (var response, var body) = await CommonHttp.ExecuteWithRetryAsync(
+      client,
+      () =>
+      {
+        var url = $"{config.AdminApiBaseUrl.TrimEnd('/')}/admin/v1/orgs/{config.OrgId}/directory/groups/{groupId}/memberships/{Uri.EscapeDataString(accountId)}";
+        var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        return request;
+      },
+      DefaultMaxRetries,
+      cancellationToken);
+
+    return (response, body);
+  }
+
+  /// <summary>組織の全ユーザーを取得</summary>
   public static async Task<List<(string AccountId, string? Email, string? DisplayName)>> GetAllOrgUsersAsync(HttpClient client, AtlassianConfig config, CancellationToken cancellationToken = default)
   {
     var results = new List<(string, string?, string?)>();
@@ -90,7 +110,7 @@ public static class CommonAdmin
     return results;
   }
 
-  /// <summary>ユーザーの最終アクティブ日時を取得（product_access の最遅 last_active_timestamp）</summary>
+  /// <summary>ユーザーの最終アクティブ日時を取得</summary>
   public static async Task<string?> GetLastActiveDateAsync(HttpClient client, AtlassianConfig config, string accountId, CancellationToken cancellationToken = default)
   {
     (var response, var json) = await CommonHttp.ExecuteWithRetryAsync(
