@@ -9,26 +9,24 @@ namespace AtlassianMainteUty;
 /// </summary>
 internal static class AddUserToGroup
 {
+  private static Config? _config;
+  private static ILogger? _logger;
+
   public static async Task<int> Main(string[] args)
   {
-    Config? config = null;
-    ILogger? logger = null;
-
     try
     {
-      config = Config.Load();
-      logger = LogHelper.CreateLogger("AddUserToGroup.log");
+      _config = Config.Load();
+      _logger = LogHelper.CreateLogger("AddUserToGroup.log");
 
       var buildDate = LogHelper.GetBuildDate(Assembly.GetExecutingAssembly());
       if (!string.IsNullOrEmpty(buildDate))
-      {
-        logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
-      }
+        _logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
 
       if (args.Length < 2)
       {
-        logger.LogError("使用法: AddUserToGroup <メールアドレス> <グループ名>");
-        logger.LogInformation("例: AddUserToGroup user@example.com jira-users");
+        _logger.LogError("使用法: AddUserToGroup <メールアドレス> <グループ名>");
+        _logger.LogInformation("例: AddUserToGroup user@example.com jira-users");
         return 1;
       }
 
@@ -37,18 +35,18 @@ internal static class AddUserToGroup
 
       if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(groupName))
       {
-        logger.LogError("メールアドレスとグループ名は必須です。");
+        _logger.LogError("メールアドレスとグループ名は必須です。");
         return 1;
       }
 
-      logger.LogInformation("対象ユーザー: {Email}", email);
-      logger.LogInformation("対象グループ: {GroupName}", groupName);
+      _logger.LogInformation("対象ユーザー: {Email}", email);
+      _logger.LogInformation("対象グループ: {GroupName}", groupName);
 
-      return await execAddUserToGroup(config.Atlassian, logger, email, groupName);
+      return await execAddUserToGroup(email, groupName);
     }
     catch (Exception ex)
     {
-      logger?.LogError(ex, "エラーが発生しました");
+      _logger?.LogError(ex, "エラーが発生しました");
       return 1;
     }
     finally
@@ -58,10 +56,13 @@ internal static class AddUserToGroup
   }
 
   /// <summary>
-  /// グループにユーザーを追加する。戻り値は 0（成功）または 1（失敗）。Exception がスローされる場合あり。
+  /// グループにユーザーを追加する
   /// </summary>
-  private static async Task<int> execAddUserToGroup(AtlassianConfig config, ILogger logger, string email, string groupName)
+  private static async Task<int> execAddUserToGroup(string email, string groupName)
   {
+    var config = _config!.Atlassian;
+    var logger = _logger!;
+
     using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
 
     var accountId = await CommonJIRA.GetAccountIdByEmailAsync(httpClient, config, email);
@@ -80,7 +81,7 @@ internal static class AddUserToGroup
     }
     logger.LogInformation("取得した groupId: {GroupId}", groupId);
 
-    logger.LogInformation("グループ追加リクエスト送信（失敗時は最大3回までリトライ）...");
+    logger.LogInformation("グループ追加リクエスト送信...");
     (var response, var rawResponse) = await CommonAdmin.AddUserToGroupAsync(httpClient, config, accountId, groupId);
 
     using (response)
