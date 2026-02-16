@@ -7,7 +7,7 @@ namespace AtlassianMainteUty;
 /// <summary>
 /// ログとビルド日時取得の共通ヘルパー。
 /// </summary>
-public static class LogHelper
+public static class Log
 {
   /// <summary>
   /// Serilog を使用した ILogger を作成する。
@@ -33,7 +33,7 @@ public static class LogHelper
       _ => Serilog.Events.LogEventLevel.Information
     };
 
-    Log.Logger = new LoggerConfiguration()
+    Serilog.Log.Logger = new LoggerConfiguration()
       .MinimumLevel.Is(minimumLevel)
       .WriteTo.Console()
       .WriteTo.File(

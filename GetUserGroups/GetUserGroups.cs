@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 
@@ -16,13 +18,16 @@ internal static class GetUserGroups
     try
     {
       _config = Config.Load();
-      _logger = LogHelper.CreateLogger("GetUserGroups.log");
+      _logger = Log.CreateLogger("GetUserGroups.log");
 
-      var buildDate = LogHelper.GetBuildDate(Assembly.GetExecutingAssembly());
+      var buildDate = Log.GetBuildDate(Assembly.GetExecutingAssembly());
       if (!string.IsNullOrEmpty(buildDate))
         _logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
 
-      return await execGetUserGroup();
+      var json = await execGetUserGroup();
+      await File.WriteAllTextAsync("output.json", json);
+
+      return 0;
     }
     catch (Exception ex)
     {
@@ -36,40 +41,41 @@ internal static class GetUserGroups
   }
 
   /// <summary>
-  /// テナント全ユーザーの所属グループを表示する
+  /// テナント全ユーザーの所属グループを JSON 形式で返す
   /// </summary>
-  private static async Task<int> execGetUserGroup()
+  private static async Task<string> execGetUserGroup()
   {
     var config = _config!.Atlassian;
-    var logger = _logger!;
 
     using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds) };
 
     var users = await CommonAdmin.GetAllOrgUsersAsync(httpClient, config);
-    if (users.Count == 0)
+    var userItems = new List<UserGroup>();
+
+    if (users.Count != 0)
     {
-      logger.LogInformation("組織にユーザーが存在しません。");
-      return 1;
-    }
-
-    logger.LogInformation("テナント内ユーザー数: {Count}", users.Count);
-
-    foreach (var (accountId, email, displayName) in users)
-    {
-      var groupNames = await CommonJIRA.GetGroupNamesByAccountIdAsync(httpClient, config, accountId);
-      var label = !string.IsNullOrEmpty(email) ? email : (displayName ?? accountId);
-
-      logger.LogInformation("--- {UserLabel} (accountId: {AccountId}) ---", label, accountId);
-      if (groupNames.Count == 0)
-        logger.LogInformation("  所属グループ: （なし）");
-      else
+      foreach (var (accountId, email, _) in users)
       {
-        logger.LogInformation("  所属グループ ({Count}):", groupNames.Count);
-        foreach (var name in groupNames.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
-          logger.LogInformation("    - {Name}", name);
+        var groupNames = await CommonJIRA.GetGroupNamesByAccountIdAsync(httpClient, config, accountId);
+        var lastLogin = await CommonAdmin.GetLastActiveDateAsync(httpClient, config, accountId);
+
+        userItems.Add(new UserGroup(email ?? "", groupNames.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(), lastLogin ?? ""));
       }
     }
 
-    return 0;
+    var output = new UserGroupList(
+      Format: "user-group",
+      Version: "1.0",
+      CreateDate: DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+      Users: userItems);
+
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+      DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    return JsonSerializer.Serialize(output, options);
   }
 }
