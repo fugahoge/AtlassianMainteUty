@@ -25,6 +25,17 @@
       "stopAtEntry": false
     },
     {
+      "name": "ChkResult Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/ChkResult/bin/Debug/net10.0-windows/ChkResult.dll",
+      "args": ["before.json", "after.json"],
+      "cwd": "${workspaceFolder}/ChkResult",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach"
