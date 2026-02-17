@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// グループにユーザーを追加する
+/// ユーザーのグループを設定する（追加・削除）
 /// </summary>
-internal static class AddUserToGroup
+internal static class SetUserToGroup
 {
   private static Config? _config;
   private static ILogger? _logger;
@@ -17,7 +17,7 @@ internal static class AddUserToGroup
     try
     {
       _config = Config.Load();
-      _logger = Log.CreateLogger("AddUserToGroup.log");
+      _logger = Log.CreateLogger("SetUserToGroup.log");
 
       var buildDate = Log.GetBuildDate(Assembly.GetExecutingAssembly());
       if (!string.IsNullOrEmpty(buildDate))

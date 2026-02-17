@@ -64,7 +64,7 @@ internal static class GetUserGroups
     }
 
     var output = new UserGroupList(
-      Format: "user-group-list",
+      Format: "user-grouplist",
       Version: "1.0",
       CreateDate: DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
       Users: userItems);

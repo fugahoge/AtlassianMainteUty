@@ -10,8 +10,8 @@
     <SupportedOSPlatformVersion>6.1</SupportedOSPlatformVersion>
     <SupportedOSPlatform>windows</SupportedOSPlatform>
     <RootNamespace>AtlassianMainteUty</RootNamespace>
-    <AssemblyName>AddUserToGroup</AssemblyName>
-    <StartupObject>AtlassianMainteUty.AddUserToGroup</StartupObject>
+    <AssemblyName>SetUserToGroup</AssemblyName>
+    <StartupObject>AtlassianMainteUty.SetUserToGroup</StartupObject>
 
     <!-- 単一ファイル実行可能ファイルの設定 -->
     <PublishSingleFile>true</PublishSingleFile>

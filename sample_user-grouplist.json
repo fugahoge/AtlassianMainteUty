@@ -1,0 +1,17 @@
+{
+  "format": "user-grouplist",
+  "version": "1.0",
+  "createDate": "2024-02-16T10:30:00Z",
+  "users": [
+    {
+      "mail": "userA@test.com",
+      "curGroup": ["Admin", "Developer"],
+      "lastLogin": "2024-02-15T14:25:30Z"
+    },
+    {
+      "mail": "userB@test.com",
+      "curGroup": ["Developer", "Tester"],
+      "lastLogin": "2024-02-14T09:18:45Z"
+    }
+  ]
+}

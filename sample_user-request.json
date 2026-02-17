@@ -1,0 +1,19 @@
+{
+  "format": "user-request",
+  "version": "1.0",
+  "createDate": "2024-02-16T10:30:00Z",
+  "users": [
+    {
+      "mail": "userA@test.com",
+      "addGroup": ["Python", "JavaScript"],
+      "delGroup": ["Ruby"],
+      "deleteAll": false
+    },
+    {
+      "mail": "userB@test.com",
+      "addGroup": ["Java", "C#"],
+      "delGroup": ["PHP", "Go"],
+      "deleteAll": false
+    }
+  ]
+}

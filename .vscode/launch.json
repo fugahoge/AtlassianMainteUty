@@ -14,13 +14,13 @@
     },
 
     {
-      "name": "AddUserToGroup Debug",
+      "name": "SetUserToGroup Debug",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/AddUserToGroup/bin/Debug/net10.0-windows/AddUserToGroup.dll",
+      "program": "${workspaceFolder}/SetUserToGroup/bin/Debug/net10.0-windows/SetUserToGroup.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/AddUserToGroup",
+      "cwd": "${workspaceFolder}/SetUserToGroup",
       "console": "internalConsole",
       "stopAtEntry": false
     },

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{A1B2C3D4-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddUserToGroup", "AddUserToGroup\AddUserToGroup.csproj", "{A1B2C3D4-0001-4000-8000-000000000001}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SetUserToGroup", "SetUserToGroup\SetUserToGroup.csproj", "{A1B2C3D4-0001-4000-8000-000000000001}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetUserGroups", "GetUserGroups\GetUserGroups.csproj", "{A1B2C3D4-0002-4000-8000-000000000002}"
 EndProject

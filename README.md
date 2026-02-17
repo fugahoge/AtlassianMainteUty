@@ -31,10 +31,10 @@ dotnet publish AtlassianMainteUty.sln
 
 ## 実行
 
-### AddUserToGroup.exe - ユーザーをグループに追加
+### SetUserToGroup.exe - ユーザーのグループを設定
 
 ```bash
-.\publish\AddUserToGroup.exe <メールアドレス> <グループ名>
+.\publish\SetUserToGroup.exe
 ```
 
 ### GetUserGroups.exe - テナント全ユーザーの所属グループを表示
@@ -46,9 +46,9 @@ dotnet publish AtlassianMainteUty.sln
 
 ## 動作
 
-### AddUserToGroup.exe
+### SetUserToGroup.exe
 
-1. 引数で「メールアドレス」と「グループ名」を受け取る。
+1. input.json からユーザーとグループの追加・削除設定を読み込む。
 2. Jira REST API（users/search）でメールから `accountId` を取得。
 3. Jira REST API（groupuserpicker）でグループ名から `groupId` を取得。
 4. Atlassian Admin API でグループにユーザーを追加。失敗時は最大 3 回までリトライ（HTTP 408/429/5xx の場合、2 秒・4 秒・6 秒の間隔で再試行）。
