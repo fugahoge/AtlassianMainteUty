@@ -121,7 +121,7 @@ internal static class SetUserToGroupBat
         continue;
 
       var emailEnc = Uri.EscapeDataString(user.Mail);
-      var emailEncForBatch = EscapeForBatch(emailEnc); // % -> %%
+      var emailEncForBatch = EscapeForBatch(emailEnc);
       sb.AppendLine($"REM === ユーザー: {user.Mail} ===");
       sb.AppendLine($"set \"EMAIL_ENC={emailEncForBatch}\"");
       sb.AppendLine();
