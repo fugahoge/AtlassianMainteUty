@@ -1,0 +1,13 @@
+{
+  "format": "user-group-request",
+  "version": "1.0",
+  "createDate": "2025-02-19",
+  "users": [
+    {
+      "mail": "user@example.com",
+      "addGroup": ["jira-users"],
+      "delGroup": [],
+      "deleteAll": false
+    }
+  ]
+}

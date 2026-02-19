@@ -37,6 +37,18 @@ dotnet publish AtlassianMainteUty.sln
 .\publish\SetUserToGroup.exe
 ```
 
+### SetUserToGroupBat.exe - curl を実行するバッチファイルを出力
+
+SetUserToGroup と同じ仕様（input.json 形式）だが、WebAPI を直接呼び出さず、代わりに curl を実行するバッチファイル（.bat）を出力する。
+
+```bash
+.\publish\SetUserToGroupBat.exe [出力パス]
+```
+
+- 出力パスを省略した場合は `SetUserToGroup.bat` に出力
+- 生成されたバッチファイルを実行すると、curl で WebAPI と等価な処理を行う
+- 前提: curl がインストールされていること、Config.json の設定が正しいこと
+
 ### GetUserGroups.exe - テナント全ユーザーの所属グループを表示
 
 
