@@ -23,8 +23,15 @@ internal static class SetUserToGroup
       if (!string.IsNullOrEmpty(buildDate))
         _logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
 
-      // JSON ファイルを読み込む
-      var request = await ReadJsonFile("input.json");
+      if (args.Length < 1)
+      {
+        _logger.LogError("使用法: SetUserToGroup <JSONファイル>");
+        Console.WriteLine("使用法: SetUserToGroup <JSONファイル>");
+        return 1;
+      }
+
+      var jsonPath = args[0].Trim();
+      var request = await ReadJsonFile(jsonPath);
       if (request == null)
       {
         return 1;

@@ -25,11 +25,19 @@ internal static class SetUserToGroupBat
       if (!string.IsNullOrEmpty(buildDate))
         _logger.LogInformation("ビルド日時: {BuildDate}", buildDate);
 
-      var request = await ReadJsonFile("input.json");
+      if (args.Length < 1)
+      {
+        _logger.LogError("使用法: SetUserToGroupBat <JSONファイル> [出力パス]");
+        Console.WriteLine("使用法: SetUserToGroupBat <JSONファイル> [出力パス]");
+        return 1;
+      }
+
+      var jsonPath = args[0].Trim();
+      var request = await ReadJsonFile(jsonPath);
       if (request == null)
         return 1;
 
-      var outputPath = args.Length > 0 ? args[0] : "SetUserToGroup.bat";
+      var outputPath = args.Length > 1 ? args[1] : "SetUserToGroup.bat";
       var batContent = GenerateBatchFile(request);
       await File.WriteAllTextAsync(outputPath, batContent, Encoding.UTF8);
 

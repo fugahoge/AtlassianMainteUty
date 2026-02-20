@@ -10,9 +10,7 @@ Atlassian Cloud にアクセスしてユーザーをグループに追加する�
 
 ## 設定
 
-`Common.cs` で以下を実際の値に書き換えてください。
-
-| 定数 | 説明 |
+| 変数 | 説明 |
 |------|------|
 | `JiraBaseUrl` | Jira サイトの URL（例: `https://your-domain.atlassian.net`） |
 | `AdminApiBaseUrl` | Admin API のベース URL（通常は `https://api.atlassian.com` のまま） |
@@ -23,7 +21,7 @@ Atlassian Cloud にアクセスしてユーザーをグループに追加する�
 
 ## ビルド
 
-publishディレクトリ内に2つの実行ファイルが生成されます：
+publishディレクトリ内に実行ファイルが生成されます：
 
 ```bash
 dotnet publish AtlassianMainteUty.sln
@@ -34,30 +32,32 @@ dotnet publish AtlassianMainteUty.sln
 ### SetUserToGroup.exe - ユーザーのグループを設定
 
 ```bash
-.\publish\SetUserToGroup.exe
+.\publish\SetUserToGroup.exe <JSONファイル>
 ```
 
-### SetUserToGroupBat.exe - バッチファイルを出力
+- 第一引数で user-group-request 形式の JSON ファイルを指定
 
-SetUserToGroup と同じ仕様（input.json 形式）だが、WebAPI を直接呼び出さず、代わりに curl を実行するバッチファイル（.bat）を出力する。
+### SetUserToGroupBat.exe - ユーザーのグループを設定(バッチファイル版)
+
+SetUserToGroup と同じ仕様（user-group-request 形式の JSON）だが、WebAPI を直接呼び出さず、代わりに curl を実行するバッチファイル（.bat）を出力する。
 
 ```bash
-.\publish\SetUserToGroupBat.exe [出力パス]
+.\publish\SetUserToGroupBat.exe <JSONファイル> [出力パス]
 ```
 
-- 出力パスを省略した場合は `SetUserToGroup.bat` に出力
+- 第一引数で JSON ファイルを指定、第二引数で出力パスを指定（省略時は `SetUserToGroup.bat`）
 - 生成されたバッチファイルを実行すると、curl で WebAPI と等価な処理を行う
 - 前提: curl がインストールされていること、Config.json の設定が正しいこと
 
-### SetUserToGroupPS.exe - PowerShell スクリプトを出力
+### SetUserToGroupPS.exe - ユーザーのグループを設定(PowerShell版)
 
-SetUserToGroup と同じ仕様（input.json 形式）だが、WebAPI を直接呼び出さず、代わりに PowerShell スクリプト（.ps1）を出力する。
+SetUserToGroup と同じ仕様（user-group-request 形式の JSON）だが、WebAPI を直接呼び出さず、代わりに PowerShell スクリプト（.ps1）を出力する。
 
 ```bash
-.\publish\SetUserToGroupPS.exe [出力パス]
+.\publish\SetUserToGroupPS.exe <JSONファイル> [出力パス]
 ```
 
-- 出力パスを省略した場合は `SetUserToGroup.ps1` に出力
+- 第一引数で JSON ファイルを指定、第二引数で出力パスを指定（省略時は `SetUserToGroup.ps1`）
 - 生成された PowerShell スクリプトを実行すると、Invoke-RestMethod で WebAPI と等価な処理を行う
 - accountId/groupId をキャッシュして API 呼び出し回数を削減
 - 前提: PowerShell 5.1 以上、Config.json の設定が正しいこと
@@ -71,23 +71,10 @@ SetUserToGroup と同じ仕様（input.json 形式）だが、WebAPI を直接�
 
 ## 動作
 
-### SetUserToGroup.exe
-
-1. input.json からユーザーとグループの追加・削除設定を読み込む。
-2. Jira REST API（users/search）でメールから `accountId` を取得。
-3. Jira REST API（groupuserpicker）でグループ名から `groupId` を取得。
-4. Atlassian Admin API でグループにユーザーを追加。失敗時は最大 3 回までリトライ（HTTP 408/429/5xx の場合、2 秒・4 秒・6 秒の間隔で再試行）。
-5. レスポンス JSON を解析し、`accountId`・`groupId`・メッセージ・エラーなどを表示。
-
-### GetUserGroups.exe
-
-- テナント全ユーザーの所属グループを表示
-- Jira `groups/picker?accountId=xxx`（所属グループ取得）
-
 ## リトライ条件
 
 - HTTP 408 (Request Timeout)
 - HTTP 429 (Too Many Requests)
 - HTTP 5xx (サーバーエラー)
 
-上記のいずれかの場合に、最大 3 回までリトライします。
+上記のいずれかの場合に、３回までリトライします。
