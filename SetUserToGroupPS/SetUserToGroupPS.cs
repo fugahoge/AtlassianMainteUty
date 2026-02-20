@@ -6,9 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// SetUserToGroup と同じ仕様で、WebAPI を直接呼び出さず、
-/// 代わりに PowerShell スクリプトを出力するプログラム。
-/// 生成されたスクリプトは accountId/groupId をキャッシュして API 呼び出し回数を削減する。
+/// ユーザーのグループを設定する（追加・削除）
+/// WebAPI を直接呼び出さず、PowerShell スクリプトを出力する
 /// </summary>
 internal static class SetUserToGroupPS
 {
@@ -112,19 +111,18 @@ internal static class SetUserToGroupPS
     var apiKey = config.ApiKey;
 
     sb.AppendLine("#Requires -Version 5.1");
-    sb.AppendLine("# SetUserToGroup と等価な処理を PowerShell で実行（accountId/groupId をキャッシュして API 呼び出しを削減）");
     sb.AppendLine();
     sb.AppendLine("$ErrorActionPreference = 'Stop'");
     sb.AppendLine("Set-Location $PSScriptRoot");
     sb.AppendLine();
-    sb.AppendLine("# 設定（プログラム実行時に Config.json から読み込んだ値）");
+    sb.AppendLine("# 設定（Config.json から読み込んだ値）");
     sb.AppendLine($"$jiraUrl = '{EscapeForPowerShellString(jiraUrl)}'");
     sb.AppendLine($"$jiraAuth = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('{EscapeForPowerShellString(jiraAuth)}'))");
     sb.AppendLine($"$adminUrl = '{EscapeForPowerShellString(adminUrl)}'");
     sb.AppendLine($"$adminKey = '{EscapeForPowerShellString(apiKey)}'");
     sb.AppendLine($"$orgId = '{EscapeForPowerShellString(orgId)}'");
     sb.AppendLine();
-    sb.AppendLine("# キャッシュ（API 呼び出し回数の削減）");
+    sb.AppendLine("# キャッシュ");
     sb.AppendLine("$accountCache = @{}");
     sb.AppendLine("$groupCache = @{}");
     sb.AppendLine();

@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// SetUserToGroup と同じ仕様で、WebAPI を直接呼び出さず、
-/// 代わりに curl を実行するバッチファイルを出力するプログラム。
+/// ユーザーのグループを設定する（追加・削除）
+/// WebAPI を直接呼び出さず、バッチファイルを出力する
 /// </summary>
 internal static class SetUserToGroupBat
 {
