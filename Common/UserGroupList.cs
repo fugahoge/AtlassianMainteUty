@@ -1,7 +1,7 @@
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// user-group 形式の JSON 出力用データ
+/// user-group-list 形式の JSON 出力用データ
 /// </summary>
 public sealed record UserGroupList(
   string Format,

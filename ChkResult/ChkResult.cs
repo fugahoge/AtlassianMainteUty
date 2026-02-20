@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace AtlassianMainteUty;
 
 /// <summary>
-/// user-grouplist 形式の JSON 2 ファイルを比較し差分を表示する
+/// user-group-list 形式の JSON ファイルを比較して差分を表示する
 /// </summary>
 internal static class ChkResult
 {
@@ -48,7 +48,7 @@ internal static class ChkResult
   }
 
   /// <summary>
-  /// before と after の user-grouplist JSON を比較し差分を表示する
+  /// before と after の user-group-list JSON を比較し差分を表示する
   /// </summary>
   private static async Task<int> execChkResult(string beforePath, string afterPath)
   {
@@ -118,7 +118,7 @@ internal static class ChkResult
         if (afterUser != null)
         {
           var groups = string.Join(", ", afterUser.CurGroup);
-          var detail = $"  curGroup: [{groups}], lastLogin: {afterUser.LastLogin}";
+          var detail = $"  curGroup: [{groups}]";
           logger.LogInformation(detail);
           Console.WriteLine(detail);
         }
@@ -134,22 +134,21 @@ internal static class ChkResult
         if (beforeUser != null)
         {
           var groups = string.Join(", ", beforeUser.CurGroup);
-          var detail = $"  curGroup: [{groups}], lastLogin: {beforeUser.LastLogin}";
+          var detail = $"  curGroup: [{groups}]";
           logger.LogInformation(detail);
           Console.WriteLine(detail);
         }
         continue;
       }
 
-      // 両方に存在 - curGroup と lastLogin を比較
+      // 両方に存在 - curGroup を比較
       var beforeGroups = (beforeUser!.CurGroup ?? Array.Empty<string>()).ToHashSet(StringComparer.OrdinalIgnoreCase);
       var afterGroups = (afterUser!.CurGroup ?? Array.Empty<string>()).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
       var addedGroups = afterGroups.Except(beforeGroups).OrderBy(g => g, StringComparer.OrdinalIgnoreCase).ToList();
       var removedGroups = beforeGroups.Except(afterGroups).OrderBy(g => g, StringComparer.OrdinalIgnoreCase).ToList();
-      var lastLoginChanged = !string.Equals(beforeUser.LastLogin ?? "", afterUser.LastLogin ?? "", StringComparison.Ordinal);
 
-      if (addedGroups.Count > 0 || removedGroups.Count > 0 || lastLoginChanged)
+      if (addedGroups.Count > 0 || removedGroups.Count > 0)
       {
         hasDiff = true;
         var msg = $"[変更] {mail}";
@@ -165,12 +164,6 @@ internal static class ChkResult
         if (removedGroups.Count > 0)
         {
           var detail = $"  curGroup [-] 削除: {string.Join(", ", removedGroups)}";
-          logger.LogInformation(detail);
-          Console.WriteLine(detail);
-        }
-        if (lastLoginChanged)
-        {
-          var detail = $"  lastLogin: {beforeUser.LastLogin ?? "(なし)"} -> {afterUser.LastLogin ?? "(なし)"}";
           logger.LogInformation(detail);
           Console.WriteLine(detail);
         }
