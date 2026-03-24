@@ -148,9 +148,12 @@ internal static class SetUserToGroupPS
     sb.AppendLine();
     sb.AppendLine("function Get-UserGroupNames {");
     sb.AppendLine("  param([string]$AccountId)");
-    sb.AppendLine("  $r = Invoke-RestMethod -Uri \"$jiraUrl/rest/api/3/groups/picker?accountId=$AccountId\" -Headers @{ Authorization = \"Basic $jiraAuth\" }");
+    sb.AppendLine("  $accEnc = [uri]::EscapeDataString($AccountId)");
+    sb.AppendLine("  $r = Invoke-RestMethod -Uri \"$jiraUrl/rest/api/3/groups/picker?accountId=$accEnc\" -Headers @{ Authorization = \"Basic $jiraAuth\" }");
+    sb.AppendLine("  if ($null -eq $r -or $null -eq $r.groups) { return @() }");
     sb.AppendLine("  $grps = $r.groups");
     sb.AppendLine("  if ($grps -is [array]) { return $grps | ForEach-Object { $_.name } }");
+    sb.AppendLine("  if ($null -eq $grps.groups) { return @() }");
     sb.AppendLine("  return $grps.groups | ForEach-Object { $_.name }");
     sb.AppendLine("}");
     sb.AppendLine();
@@ -174,7 +177,7 @@ internal static class SetUserToGroupPS
         sb.AppendLine("    $gid = Get-GroupId $gn");
         sb.AppendLine("    if ($gid) {");
         sb.AppendLine("      Write-Host \"グループ削除: " + emailEsc + " <- $gn\"");
-        sb.AppendLine("      Invoke-RestMethod -Method Delete -Uri \"$adminUrl/admin/v1/orgs/$orgId/directory/groups/$gid/memberships/$accountId\" -Headers @{ Authorization = \"Bearer $adminKey\" }");
+        sb.AppendLine("      $accEnc = [uri]::EscapeDataString($accountId); Invoke-RestMethod -Method Delete -Uri \"$adminUrl/admin/v1/orgs/$orgId/directory/groups/$gid/memberships/$accEnc\" -Headers @{ Authorization = \"Bearer $adminKey\" }");
         sb.AppendLine("    }");
         sb.AppendLine("  }");
         sb.AppendLine("} else { Write-Warning \"ユーザーが見つかりません: " + emailEsc + "\" }");
@@ -190,7 +193,7 @@ internal static class SetUserToGroupPS
           sb.AppendLine("$accountId = Get-AccountId '" + emailEsc + "'; $gid = Get-GroupId '" + gnEsc + "'");
           sb.AppendLine("if ($accountId -and $gid) {");
           sb.AppendLine("  Write-Host \"グループ削除: " + emailEsc + " <- " + gnEsc + "\"");
-          sb.AppendLine("  Invoke-RestMethod -Method Delete -Uri \"$adminUrl/admin/v1/orgs/$orgId/directory/groups/$gid/memberships/$accountId\" -Headers @{ Authorization = \"Bearer $adminKey\" }");
+          sb.AppendLine("  $accEnc = [uri]::EscapeDataString($accountId); Invoke-RestMethod -Method Delete -Uri \"$adminUrl/admin/v1/orgs/$orgId/directory/groups/$gid/memberships/$accEnc\" -Headers @{ Authorization = \"Bearer $adminKey\" }");
           sb.AppendLine("} elseif (-not $accountId) { Write-Warning \"ユーザーが見つかりません: " + emailEsc + "\" } elseif (-not $gid) { Write-Warning \"グループが見つかりません: " + gnEsc + "\" }");
         }
 
@@ -206,7 +209,7 @@ internal static class SetUserToGroupPS
           sb.AppendLine("  $body = @{ account_id = $accountId } | ConvertTo-Json");
           sb.AppendLine("  try {");
           sb.AppendLine("    Invoke-RestMethod -Method Post -Uri \"$adminUrl/admin/v1/orgs/$orgId/directory/groups/$gid/memberships\" -Headers @{ Authorization = \"Bearer $adminKey\"; 'Content-Type' = 'application/json' } -Body $body");
-          sb.AppendLine("  } catch { if ($_.Exception.Response.StatusCode -eq 400 -and $_.ErrorDetails.Message -match 'already a member') { Write-Host '  既に所属しています' } else { throw } }");
+          sb.AppendLine("  } catch { if ([int]$_.Exception.Response.StatusCode -eq 400 -and $_.ErrorDetails.Message -match 'already a member') { Write-Host '  既に所属しています' } else { throw } }");
           sb.AppendLine("} elseif (-not $accountId) { Write-Warning \"ユーザーが見つかりません: " + emailEsc + "\" } elseif (-not $gid) { Write-Warning \"グループが見つかりません: " + gnEsc + "\" }");
         }
       }
