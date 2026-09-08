@@ -1,0 +1,43 @@
+{
+  "format": "space-role-request",
+  "version": "1.0",
+  "createDate": "2026-09-08T10:30:00Z",
+  "spaces": [
+    {
+      "spaceId": "",
+      "spaceKey": "DEV",
+      "assignments": [
+        {
+          "principalType": "GROUP",
+          "principalId": "",
+          "mail": "",
+          "groupName": "developers",
+          "roleId": "",
+          "roleName": "Collaborator"
+        },
+        {
+          "principalType": "USER",
+          "principalId": "",
+          "mail": "userA@test.com",
+          "groupName": "",
+          "roleId": "",
+          "roleName": "Viewer"
+        }
+      ]
+    },
+    {
+      "spaceId": "65538",
+      "spaceKey": "",
+      "assignments": [
+        {
+          "principalType": "GROUP",
+          "principalId": "1a2b3c4d-0000-0000-0000-000000000002",
+          "mail": "",
+          "groupName": "",
+          "roleId": "1",
+          "roleName": ""
+        }
+      ]
+    }
+  ]
+}

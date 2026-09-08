@@ -34,6 +34,7 @@ public class Config
 public class AtlassianConfig
 {
   public string JiraBaseUrl { get; set; } = "https://your-domain.atlassian.net";
+  public string ConfluenceBaseUrl { get; set; } = string.Empty;
   public string AdminApiBaseUrl { get; set; } = "https://api.atlassian.com";
   public string JiraAuthEmail { get; set; } = string.Empty;
   public string ApiToken { get; set; } = string.Empty;

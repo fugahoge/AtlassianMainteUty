@@ -1,0 +1,52 @@
+{
+  "format": "space-role-list",
+  "version": "1.0",
+  "createDate": "2026-09-08T10:30:00Z",
+  "roleMode": "ROLES_TRANSITION",
+  "roles": [
+    {
+      "roleId": "1",
+      "roleName": "Admin",
+      "type": "SYSTEM",
+      "description": "スペースのすべてを管理する",
+      "permissions": ["read:space", "create:page", "delete:page", "administer:space"]
+    },
+    {
+      "roleId": "3",
+      "roleName": "Collaborator",
+      "type": "SYSTEM",
+      "description": "スペース内のコンテンツを追加・編集する",
+      "permissions": ["read:space", "create:page", "delete:page"]
+    },
+    {
+      "roleId": "4",
+      "roleName": "Viewer",
+      "type": "SYSTEM",
+      "description": "スペース内のコンテンツを閲覧・コメントする",
+      "permissions": ["read:space", "create:comment"]
+    }
+  ],
+  "spaces": [
+    {
+      "spaceId": "65537",
+      "spaceKey": "DEV",
+      "spaceName": "Development",
+      "assignments": [
+        {
+          "principalType": "GROUP",
+          "principalId": "1a2b3c4d-0000-0000-0000-000000000001",
+          "name": "developers",
+          "roleId": "3",
+          "roleName": "Collaborator"
+        },
+        {
+          "principalType": "USER",
+          "principalId": "5b10a2844c20165700ede21g",
+          "name": "userA@test.com",
+          "roleId": "4",
+          "roleName": "Viewer"
+        }
+      ]
+    }
+  ]
+}

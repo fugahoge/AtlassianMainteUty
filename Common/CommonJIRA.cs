@@ -42,7 +42,7 @@ public static class CommonJIRA
       {
         var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/users/search?query={Uri.EscapeDataString(email)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
+        request.Headers.Authorization = CommonHttp.CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -90,7 +90,7 @@ public static class CommonJIRA
       {
         var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groupuserpicker?query={Uri.EscapeDataString(groupName)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
+        request.Headers.Authorization = CommonHttp.CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -127,7 +127,7 @@ public static class CommonJIRA
       {
         var url = $"{config.JiraBaseUrl.TrimEnd('/')}/rest/api/3/groups/picker?accountId={Uri.EscapeDataString(accountId)}";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
+        request.Headers.Authorization = CommonHttp.CreateBasicAuth(config.JiraAuthEmail, config.ApiToken);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
       },
@@ -181,14 +181,5 @@ public static class CommonJIRA
       return false;
     var lower = rawResponse.ToLowerInvariant();
     return lower.Contains("already a member");
-  }
-
-  /// <summary>Basic 認証用の Authorization ヘッダ値を生成する</summary>
-  private static AuthenticationHeaderValue CreateBasicAuth(string email, string token)
-  {
-    var credential = $"{email}:{token}";
-    var bytes = Encoding.UTF8.GetBytes(credential);
-    var encoded = Convert.ToBase64String(bytes);
-    return new AuthenticationHeaderValue("Basic", encoded);
   }
 }

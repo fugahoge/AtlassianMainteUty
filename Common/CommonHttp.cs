@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace AtlassianMainteUty;
 
@@ -57,5 +59,19 @@ public static class CommonHttp
     }
 
     return (response!, body);
+  }
+
+  /// <summary>
+  /// Basic 認証用の Authorization ヘッダ値を生成する
+  /// </summary>
+  /// <param name="email">API トークンを発行したアカウントのメールアドレス</param>
+  /// <param name="token">API トークン</param>
+  /// <returns>Authorization ヘッダ値</returns>
+  public static AuthenticationHeaderValue CreateBasicAuth(string email, string token)
+  {
+    var credential = $"{email}:{token}";
+    var bytes = Encoding.UTF8.GetBytes(credential);
+    var encoded = Convert.ToBase64String(bytes);
+    return new AuthenticationHeaderValue("Basic", encoded);
   }
 }

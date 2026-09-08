@@ -1,0 +1,26 @@
+{
+  "format": "space-permission-list",
+  "version": "1.0",
+  "createDate": "2026-09-08T10:30:00Z",
+  "spaces": [
+    {
+      "spaceId": "65537",
+      "spaceKey": "DEV",
+      "spaceName": "Development",
+      "principals": [
+        {
+          "principalType": "group",
+          "principalId": "1a2b3c4d-0000-0000-0000-000000000001",
+          "name": "developers",
+          "permissions": ["create:attachment", "create:page", "delete:page", "read:space"]
+        },
+        {
+          "principalType": "user",
+          "principalId": "5b10a2844c20165700ede21g",
+          "name": "userA@test.com",
+          "permissions": ["read:space"]
+        }
+      ]
+    }
+  ]
+}
